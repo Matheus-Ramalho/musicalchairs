@@ -16,13 +16,10 @@ std::counting_semaphore<NUM_JOGADORES> cadeira_sem(NUM_JOGADORES - 1); // Inicia
 std::condition_variable music_cv;
 std::mutex music_mutex;
 std::mutex estado_mutex;
-//std::atomic<bool> musica_parada{false};
 std::atomic<bool> jogo_ativo{true};
 bool fim_rodada = false;
 bool musica_parada = false;
-
 int linha=0;
-
 std::random_device rd;
 std::mt19937 gen(rd());
 std::uniform_int_distribution<> distrib(1000, 4000);
@@ -63,10 +60,8 @@ private:
     int jogador_eliminado = 0;
     int vencedor=0;
     std::array<int, NUM_JOGADORES> estado;    
-
     std::vector<int> jogadores_ativos;
     bool primeira_rodada = true;
-
 public:
     JogoDasCadeiras(int num_jogadores) {
         this->num_jogadores = num_jogadores;
@@ -90,11 +85,9 @@ public:
             this->primeira_rodada=false;   
             std::cout<<"\nIniciando rodada com "<<num_jogadores<<" jogadores e "<<cadeiras<<" cadeiras.\n A música está tocando... 🎵"<<std::endl; 
         }
-
         for(int i=0; i<this->estado.size();i++){
             this->estado[i]=0;
         }
-
     }
 
     void parar_musica() {
@@ -117,7 +110,6 @@ public:
     }
 
     void ocupar_cadeira(int jogador_id) {
-        //std::lock_guard<std::mutex> lock(estado_mutex);
         if(this->cadeiras_ocupadas<this->cadeiras){
             
             if(this->estado[jogador_id] == 0) {
@@ -134,8 +126,6 @@ public:
     }
 
     void exibir_estado() {
-        //std::lock_guard<std::mutex> lock(estado_mutex);
-        //std::cout << "\n-----------------------------------------------\n";
         for(int i = 1; i < estado.size(); i++) {
             if(estado[i] != 0) {
                 std::cout << "[Cadeira " << i << "]: Ocupada por P" << estado[i] << "\n";
@@ -154,7 +144,6 @@ public:
         }
         return false;
     }
-
     int get_qtd_cadeira() { return this->cadeiras; }
     int get_vencedor(){ return this->vencedor;}
 };
@@ -169,20 +158,11 @@ public:
             {
                 std::unique_lock<std::mutex> lock(music_mutex);
                 music_cv.wait(lock, [] { return musica_parada && !fim_rodada; });
-
-                // Use acquire() em vez de try_acquire()
-                //std::cout<<"Jogador: "<<this->id<<"\n";
-                //print_line(_LINE_);
-                //cadeira_sem.acquire();
-                //this->jogo.ocupar_cadeira(id);
-                
-
                 if (cadeira_sem.try_acquire()) {
                     this->jogo.ocupar_cadeira(id);
                 } else {
                     this->jogo.eliminar_jogador(id);
                 }
-
                 if (!this->jogo.esta_ativo(id)) {
                     this->ativo = false;
                     break;
@@ -239,8 +219,6 @@ private:
     JogoDasCadeiras& jogo;
 };
 
-
-
 // Main function
 int main() {
     JogoDasCadeiras jogo(NUM_JOGADORES);
@@ -267,12 +245,10 @@ int main() {
             t.join();
         }
     }
-
     // Esperar pela thread do coordenador
     if (coordenador_thread.joinable()) {
         coordenador_thread.join();
     }
-
     std::cout <<"\n🏆 Vencedor: Jogador P"<<jogo.get_vencedor()<<"! Parabéns! 🏆\n"<<"-----------------------------------------------\n\nObrigado por jogar o Jogo das Cadeiras Concorrente!"<<std::endl;
     return 0;
 }
