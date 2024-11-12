@@ -23,6 +23,10 @@ bool musica_parada = false;
 
 int linha=0;
 
+std::random_device rd;
+std::mt19937 gen(rd());
+std::uniform_int_distribution<> distrib(1000, 4000);
+
 std::array<int, NUM_JOGADORES> jogadores_ativos;
 
 void print_line(int linha){
@@ -203,43 +207,28 @@ public:
 
     void iniciar_jogo() {
         // TODO: Começa o jogo, dorme por um período aleatório, e então para a música, sinalizando os jogadores 
-
         std::cout << "-----------------------------------------------\nBem-vindo ao Jogo das Cadeiras Concorrente!\n-----------------------------------------------"<<std::endl;
-
         while(jogo_ativo){
             {
                 this->jogo.iniciar_rodada();
-
-                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                std::this_thread::sleep_for(std::chrono::milliseconds(distrib(gen)));
                 std::cout<<"\n> A música parou! Os jogadores estão tentando se sentar..."<<std::endl;
                 std::cout << "\n-----------------------------------------------\n";
-
                 this->jogo.parar_musica();
-
                 std::unique_lock<std::mutex> lock(music_mutex);
                 music_cv.wait(lock, [] { return fim_rodada; });
                 musica_parada = false;
-
                 this->jogo.exibir_estado();
-
                 this->liberar_threads_eliminadas();
                 fim_rodada = false;
-                //std::this_thread::sleep_for(std::chrono::milliseconds(10));
-
-                
             }
             if(this->jogo.get_qtd_cadeira() == 1){
                 jogo_ativo = false;
                 break;
             }
-
-            
-
-
         }
 
     }
-
     void liberar_threads_eliminadas() {
         // Libera múltiplas permissões no semáforo para destravar todas as threads que não conseguiram se sentar
         std::lock_guard<std::mutex> lock(estado_mutex);
@@ -254,8 +243,6 @@ private:
 
 // Main function
 int main() {
-
-
     JogoDasCadeiras jogo(NUM_JOGADORES);
 
     Coordenador coordenador(jogo);
