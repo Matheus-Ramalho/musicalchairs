@@ -101,7 +101,6 @@ public:
             if(this->jogadores_ativos[i]==jogador_id){
                 this->jogadores_ativos[i]=0;
                 this->jogador_eliminado = jogador_id;
-                //std::cout <<"\nJogador P" << jogador_id << " não conseguiu uma cadeira e foi eliminado!\n"<<"-----------------------------------------------\n";
                 fim_rodada = true;
                 music_cv.notify_all();
                 break;
@@ -115,7 +114,6 @@ public:
             if(this->estado[jogador_id] == 0) {
                 this->cadeiras_ocupadas++;
                 this->estado[cadeiras_ocupadas] = jogador_id;
-                //std::cout << "[Cadeira " << cadeiras_ocupadas << "]: Ocupada por P" << jogador_id << "\n";
                 this->vencedor=jogador_id;
             }
 
